@@ -130,6 +130,43 @@ export function categoryBySlug(slug: string): Category | null {
   return allCategories().find((c) => c.slug === slug) ?? null;
 }
 
+/* ------------------------------------------------------------------ *
+ * Latest-posts pagination.
+ *
+ * Real prerendered URLs (/, /page/2, /page/3 …) rather than a client-side
+ * slice. Paging client-side would mean shipping all 512 summaries (~250 KB)
+ * to every homepage visit; this way each page carries five.
+ * ------------------------------------------------------------------ */
+
+export const POSTS_PER_PAGE = 5;
+
+export function totalPages(): number {
+  return Math.max(1, Math.ceil(allPosts().length / POSTS_PER_PAGE));
+}
+
+export type PostsPage = {
+  posts: PostSummary[];
+  current: number;
+  total: number;
+  newerUrl: string | null;
+  olderUrl: string | null;
+};
+
+/** `page` is 1-based; page 1 is the homepage. */
+export function postsPage(page: number): PostsPage {
+  const total = totalPages();
+  const current = Math.min(Math.max(1, page), total);
+  const start = (current - 1) * POSTS_PER_PAGE;
+
+  return {
+    posts: allPosts().slice(start, start + POSTS_PER_PAGE),
+    current,
+    total,
+    newerUrl: current <= 1 ? null : current === 2 ? '/' : `/page/${current - 1}`,
+    olderUrl: current >= total ? null : `/page/${current + 1}`,
+  };
+}
+
 export function postsInCategory(slug: string): PostSummary[] {
   if (!exists('index', 'by-category', `${slug}.json`)) return [];
   return readJson<PostSummary[]>('index', 'by-category', `${slug}.json`);

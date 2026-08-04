@@ -61,12 +61,27 @@ if (deadTargets.length) {
   failures.push(`${deadTargets.length} redirect(s) point nowhere: ${deadTargets.slice(0, 5).map(([f, t]) => `${f}->${t}`).join(', ')}`);
 }
 
-// 5. Sanity on the required extras.
+// 5. Archive pagination must be walkable end to end — every "Older" link lands
+//    on a real page, and the last one exists.
+const perPage = 5;
+const expectedPages = Math.max(1, Math.ceil(posts.length / perPage));
+const missingArchives = [];
+for (let n = 2; n <= expectedPages; n += 1) {
+  if (!served(`/page/${n}`)) missingArchives.push(`/page/${n}`);
+}
+if (missingArchives.length) {
+  failures.push(`${missingArchives.length} archive page(s) missing: ${missingArchives.slice(0, 5).join(', ')}`);
+}
+if (served(`/page/${expectedPages + 1}`)) {
+  warnings.push(`/page/${expectedPages + 1} exists but should not — pagination overruns`);
+}
+
+// 6. Sanity on the required extras.
 for (const file of ['index.html', 'sitemap.xml', 'robots.txt', 'rss.xml', 'search-index.json', '404.html']) {
   if (!fs.existsSync(path.join(out, file))) warnings.push(`missing ${file}`);
 }
 
-// 6. Sitemap should list every post.
+// 7. Sitemap should list every post.
 const sitemap = fs.existsSync(path.join(out, 'sitemap.xml'))
   ? fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf-8')
   : '';
@@ -88,6 +103,7 @@ console.log('\nverify-build');
 console.log(`  posts served       ${posts.length - missingPosts.length}/${posts.length}`);
 console.log(`  categories served  ${categories.length - missingCategories.length}/${categories.length}`);
 console.log(`  pages redirected   ${Object.keys(redirects).length}`);
+console.log(`  archive pages      ${expectedPages - 1} (/page/2../page/${expectedPages})`);
 console.log(`  html files emitted ${htmlCount}`);
 
 for (const w of warnings) console.warn(`  warn: ${w}`);

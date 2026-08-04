@@ -391,9 +391,53 @@ a:hover { text-decoration: underline; }
 .cat-card .c { color: var(--text-muted); font-size: 0.83rem; }
 
 .recent { list-style: none; padding: 0; margin: 0; }
-.recent li { border-bottom: 1px solid var(--border); padding: 13px 0; }
-.recent a { font-weight: 600; font-size: 1.02rem; }
-.recent .r-meta { color: var(--text-muted); font-size: 0.82rem; margin-top: 3px; }
+.recent li { border-bottom: 1px solid var(--border); padding: 16px 0; }
+.recent > li > a { font-weight: 600; font-size: 1.08rem; }
+.recent .r-meta { color: var(--text-muted); font-size: 0.82rem; margin-top: 4px; }
+.recent .r-meta a { color: var(--brand-dark); font-weight: 600; }
+:root[data-theme='dark'] .recent .r-meta a { color: #3ddc9a; }
+.recent .r-excerpt {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* separates the latest-posts block from Browse by topic */
+.section-gap { height: 54px; }
+
+/* ---------------- archive pagination ---------------- */
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.btn-page {
+  background: var(--brand);
+  color: #fff;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.btn-page:hover { background: var(--brand-dark); text-decoration: none; color: #fff; }
+.btn-page.disabled {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  cursor: default;
+  opacity: 0.55;
+}
+
+.page-count { color: var(--text-muted); font-size: 0.85rem; }
 
 /* ---------------- category index ---------------- */
 

@@ -73,6 +73,10 @@ const pageUrls = fs
 
 const redirects = { ...read('redirects.json') };
 
+// The homepage IS page 1 of the archive; these would be duplicates of /.
+redirects['/page'] = '/';
+redirects['/page/1'] = '/';
+
 for (const url of pageUrls) {
   if (KEEP.has(url) || SHADOWED.has(url)) continue;
   if (url === 'brainteaser/brain-teaser') continue; // post owns this URL now
