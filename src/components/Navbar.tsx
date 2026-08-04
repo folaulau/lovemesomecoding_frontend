@@ -57,6 +57,18 @@ export default function Navbar({
       </button>
 
       <nav className={`nav-groups${mobileOpen ? ' open' : ''}`}>
+        {/* Standalone links lead, matching the original site's nav order. */}
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="nav-link"
+            onClick={() => setMobileOpen(false)}
+          >
+            {link.label}
+          </Link>
+        ))}
+
         {groups.map((group) => (
           <div
             key={group.label}
@@ -89,17 +101,6 @@ export default function Navbar({
               </div>
             )}
           </div>
-        ))}
-
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="nav-link"
-            onClick={() => setMobileOpen(false)}
-          >
-            {link.label}
-          </Link>
         ))}
       </nav>
 
