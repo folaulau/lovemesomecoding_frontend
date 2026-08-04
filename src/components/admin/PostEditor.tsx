@@ -1,7 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type CategoryDto, type PostDto } from '@/lib/api';
+import RichTextEditor from './RichTextEditor';
+
+/**
+ * The visual editor works on a fixed schema, so markup outside it — the
+ * `<div class="boldgrid-section">` wrappers WordPress left on migrated posts,
+ * inline styles, arbitrary classes — cannot round-trip. Text, headings, lists,
+ * tables, links and code blocks all survive; the layout scaffolding does not.
+ *
+ * Detecting it lets us warn instead of quietly rewriting a 40 KB tutorial.
+ */
+function hasUnrepresentableMarkup(html: string): boolean {
+  const withoutCode = html.replace(/<pre[\s\S]*?<\/pre>/gi, '');
+  return /<(div|section|span|figure|iframe)\b/i.test(withoutCode) || /\sstyle="/i.test(withoutCode);
+}
 
 const BLANK = {
   slug: '',
@@ -38,13 +52,17 @@ export default function PostEditor({
 }) {
   const [form, setForm] = useState({ ...BLANK });
   const [original, setOriginal] = useState<PostDto | null>(null);
-  const [tab, setTab] = useState<'html' | 'preview'>('html');
+  const [tab, setTab] = useState<'visual' | 'html' | 'preview'>('visual');
   const [status, setStatus] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
   const isNew = slug === null;
+  const legacyMarkup = useMemo(
+    () => hasUnrepresentableMarkup(original?.contentHtml ?? ''),
+    [original],
+  );
 
   useEffect(() => {
     setStatus(null);
@@ -208,6 +226,9 @@ export default function PostEditor({
       </div>
 
       <div className="editor-tabs">
+        <button className={tab === 'visual' ? 'active' : ''} onClick={() => setTab('visual')}>
+          Visual
+        </button>
         <button className={tab === 'html' ? 'active' : ''} onClick={() => setTab('html')}>
           HTML
         </button>
@@ -216,7 +237,25 @@ export default function PostEditor({
         </button>
       </div>
 
-      {tab === 'html' ? (
+      {tab === 'visual' && legacyMarkup && (
+        <div className="alert alert-error" role="status">
+          <strong>Heads up:</strong> this post carries layout markup from WordPress that the visual
+          editor cannot represent. Your text, headings, lists, tables, links and code blocks are all
+          preserved, but wrapper elements and inline styles will be dropped <em>once you edit here</em>.
+          Nothing changes until you type. Use the <strong>HTML</strong> tab to keep the original markup.
+        </div>
+      )}
+
+      {tab === 'visual' ? (
+        <RichTextEditor
+          value={form.contentHtml}
+          onChange={(html) => setForm((f) => ({ ...f, contentHtml: html }))}
+          onUploadImage={async (file) => {
+            const result = await api.uploadImage(file);
+            return result.publicUrl;
+          }}
+        />
+      ) : tab === 'html' ? (
         <>
           <div className="toolbar">
             <button onClick={() => insert('<h2>', '</h2>')}>H2</button>
