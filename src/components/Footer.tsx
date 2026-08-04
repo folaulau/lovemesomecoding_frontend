@@ -19,7 +19,10 @@ export default function Footer() {
             {LABELS[page] ?? page}
           </Link>
         ))}
-        <Link href="/rss.xml">RSS</Link>
+        {/* Plain anchor, not Link: rss.xml is a static file emitted by
+            postbuild.mjs, not a Next route. Link would prefetch
+            /rss.xml.txt?_rsc=… and 404 on every page load. */}
+        <a href="/rss.xml">RSS</a>
       </nav>
       <div className="copy">
         © {new Date().getFullYear()} lovemesomecoding.com — practical tutorials for working developers.
