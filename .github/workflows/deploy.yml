@@ -20,13 +20,14 @@ concurrency:
 env:
   AWS_REGION: us-west-2
   SITE_BUCKET: lovemesomecoding.com
-  SITE_DISTRIBUTION: E30YUPLP37MY9U
+  # Falls back to the known id so a missing secret can't silently target nothing.
+  SITE_DISTRIBUTION: ${{ secrets.CLOUDFRONT_DIST_ID || 'E30YUPLP37MY9U' }}
   CONTENT_BUCKET: lovemesomecoding-db-329580012644-us-west-2-an
   NEXT_PUBLIC_SITE_URL: https://lovemesomecoding.com
+  VERIFY_URL: https://lovemesomecoding.com
 
 permissions:
   contents: read
-  id-token: write # for OIDC role assumption
 
 jobs:
   deploy:
@@ -43,9 +44,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          # Preferred: OIDC. Set the AWS_DEPLOY_ROLE_ARN secret to a role trusting
-          # this repo and the static keys below become unnecessary.
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -59,24 +57,26 @@ jobs:
         # Fails if any of the 512 indexed post URLs stopped resolving.
         run: npm run build
 
-      - name: Record build version
-        run: echo "${GITHUB_SHA}" > out/version.txt
-
-      - name: Deploy to S3 and invalidate CloudFront
+      - name: Deploy, invalidate, and verify the edge serves this build
+        # deploy.sh republishes the edge function, syncs S3, waits for the
+        # invalidation to complete, then fetches version.txt back and fails if
+        # CloudFront is still serving an older build.
         run: ./scripts/deploy.sh
 
-      - name: Smoke test the deployment
+      - name: Smoke test the live site
         run: |
           set -euo pipefail
           BASE="https://lovemesomecoding.com"
           fail=0
-          for path in / /java-8/java-25-migration-guide /java-8 /sitemap.xml /rss.xml /robots.txt; do
+          for path in / /page/2 /java-8/java-25-migration-guide /java-8 /sitemap.xml /rss.xml /robots.txt; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 "$BASE$path")
             echo "  $code  $path"
             [ "$code" = "200" ] || fail=1
           done
-          # A retired page must 301, not 404.
-          code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/java-table-of-content")
-          echo "  $code  /java-table-of-content (expect 301)"
-          [ "$code" = "301" ] || fail=1
+          # Retired pages must 301, not 404.
+          for path in /java-table-of-content /wp-sitemap.xml /page/1; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$path")
+            echo "  $code  $path (expect 301)"
+            [ "$code" = "301" ] || fail=1
+          done
           exit $fail
