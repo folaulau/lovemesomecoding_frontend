@@ -133,6 +133,19 @@ a:hover { text-decoration: underline; }
 .nav-dropdown a:hover { background: var(--nav-bg-hover); color: var(--brand); text-decoration: none; }
 .nav-dropdown .count { color: #8b90a0; font-size: 0.78rem; }
 
+/* Standalone nav entry (About Me) — matches the dropdown triggers exactly so it
+   sits in the same rhythm without looking like a category. */
+.nav-link {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: #f1f1f1;
+  font-size: 0.92rem;
+  padding: 0 13px;
+  white-space: nowrap;
+}
+.nav-link:hover { background: var(--nav-bg-hover); color: var(--brand); text-decoration: none; }
+
 .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
 .theme-toggle {
@@ -476,6 +489,7 @@ a:hover { text-decoration: underline; }
   }
   .nav-groups.open .nav-group { height: auto; }
   .nav-groups.open .nav-group > button { width: 100%; text-align: left; height: 40px; }
+  .nav-groups.open .nav-link { height: 40px; padding: 0 13px; }
   .nav-groups.open .nav-dropdown { position: static; box-shadow: none; border-top: 0; background: #1f212a; }
   .nav-toggle { display: block; }
   .sidebar { display: none; }

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CodeCopy from '@/components/CodeCopy';
-import { navTree } from '@/lib/nav';
+import { navLinks, navTree } from '@/lib/nav';
 import { SITE_URL } from '@/lib/content';
 import './globals.css';
 
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="alternate" type="application/rss+xml" title="Love Me Some Coding" href="/rss.xml" />
       </head>
       <body>
-        <Navbar groups={navTree()} />
+        <Navbar groups={navTree()} links={navLinks()} />
         {children}
         <Footer />
         <CodeCopy />

@@ -6,8 +6,15 @@ import Search from './Search';
 
 type NavItem = { slug: string; name: string; count: number; url: string };
 type NavGroup = { label: string; items: NavItem[] };
+type NavLink = { label: string; href: string };
 
-export default function Navbar({ groups }: { groups: NavGroup[] }) {
+export default function Navbar({
+  groups,
+  links = [],
+}: {
+  groups: NavGroup[];
+  links?: NavLink[];
+}) {
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const barRef = useRef<HTMLElement>(null);
@@ -82,6 +89,17 @@ export default function Navbar({ groups }: { groups: NavGroup[] }) {
               </div>
             )}
           </div>
+        ))}
+
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="nav-link"
+            onClick={() => setMobileOpen(false)}
+          >
+            {link.label}
+          </Link>
         ))}
       </nav>
 

@@ -88,6 +88,18 @@ export function categoryUrl(slug: string): string {
   return `/${slug}`;
 }
 
+/**
+ * Standalone nav entries — plain links rather than category dropdowns.
+ * Filtered against the pages that actually exist so a retired page can never
+ * leave a dead link in the navbar.
+ */
+const NAV_LINKS = [{ label: 'About Me', href: '/about-me' }];
+
+export function navLinks(): { label: string; href: string }[] {
+  const available = new Set(allPageUrls().map((u) => `/${u}`));
+  return NAV_LINKS.filter((link) => available.has(link.href));
+}
+
 /** Pages that belong in the footer rather than the main nav. */
 export const FOOTER_PAGES = [
   'about-me', 'contact', 'privacy-policy', 'terms-and-conditions', 'cookie-policy',
