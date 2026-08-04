@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Content is synced from S3 at build time, never committed.
+content/
+public/search-index.json
+
+.DS_Store
+*.log
+.env.local
