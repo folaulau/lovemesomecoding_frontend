@@ -3,13 +3,39 @@
 Next.js 14 static export for [lovemesomecoding.com](https://lovemesomecoding.com) — 512 migrated
 tutorials served from S3 + CloudFront with no server in the read path.
 
-## Quick start
+## Local development
+
+Two servers, two different jobs.
+
+### Full local stack — `http://localhost:3000`
 
 ```bash
-npm install
-AWS_PROFILE=folau npm run sync-content   # pull the content DB out of S3
-npm run dev                              # http://localhost:3000
+# terminal 1 — the API
+cd ../lovemesomecoding_backend
+./scripts/seed-local-data.sh        # once: copy live content into the `local` tree
+AWS_PROFILE=folau ./scripts/run-local.sh
+
+# terminal 2 — the site
+AWS_PROFILE=folau npm run dev
 ```
+
+`npm run dev` syncs the **local** content tree, so the site and the admin both work against
+content that cannot affect production. Verified: creating a post here takes local to 513 while
+production stays at 512 and returns 404 for the new slug.
+
+Hot reload on both. Admin: `folauk` / `folaulisa1`.
+
+### Production preview — `http://localhost:4321`
+
+```bash
+AWS_PROFILE=folau npm run sync-content   # prod content
+npm run build
+npm run preview
+```
+
+Serves the real built output through CloudFront's routing rules — extensionless URLs, 301s,
+custom 404. Use this to judge what actually ships. It talks to the **live** API, so admin saves
+here are real.
 
 ## Deploying
 

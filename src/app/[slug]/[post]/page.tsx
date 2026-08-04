@@ -8,7 +8,7 @@ import { resolveTwoSegments, twoSegmentRoutes } from '@/lib/routes';
 
 export const dynamicParams = false;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return twoSegmentRoutes();
 }
 

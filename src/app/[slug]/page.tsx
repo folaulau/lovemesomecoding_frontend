@@ -8,7 +8,7 @@ import { oneSegmentRoutes, resolveOneSegment } from '@/lib/routes';
 
 export const dynamicParams = false;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return oneSegmentRoutes().map((slug) => ({ slug }));
 }
 

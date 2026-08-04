@@ -35,7 +35,9 @@ const THEME_BOOTSTRAP = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // THEME_BOOTSTRAP stamps data-theme on <html> before React hydrates, which
+    // React would otherwise flag as a server/client attribute mismatch.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
         <link rel="alternate" type="application/rss+xml" title="Love Me Some Coding" href="/rss.xml" />
