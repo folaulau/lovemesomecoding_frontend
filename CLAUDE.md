@@ -1,7 +1,7 @@
 # lovemesomecoding_frontend
 
-Next.js 14 static export for **https://lovemesomecoding.com** — 512 migrated tutorials served from
-S3 + CloudFront with no server in the read path. Migrated off WordPress on 2026-08-04.
+Next.js 14 static export for **https://lovemesomecoding.com** — 525 tutorials (512 of them migrated
+off WordPress on 2026-08-04) served from S3 + CloudFront with no server in the read path.
 
 > This repo is **public**. Never commit secrets, tokens, or credentials.
 
@@ -19,10 +19,15 @@ AWS_PROFILE=folau npm run deploy   # build, S3, republish edge fn, invalidate, v
 
 ## The one rule that matters
 
-**`npm run build` fails if any of the 512 indexed post URLs stops resolving.** That is
-`scripts/verify-build.mjs`, and it is the guard the whole migration rests on. It also checks every
-category archive, every retired page has a redirect destination, every redirect target resolves, and
-that archive pagination is walkable. Do not weaken it to make a build pass.
+**`npm run build` fails if any indexed post URL stops resolving** — the 512 migrated ones above all.
+That is `scripts/verify-build.mjs`, and it is the guard the whole migration rests on. It also checks every
+category archive, every retired page has a redirect destination, every redirect target resolves,
+that archive pagination is walkable, and that the derived indexes agree with each other. Do not
+weaken it to make a build pass.
+
+**Check 6 (index cross-check) exists because of a real incident.** A stale `categories.json` shipped
+`/oracle` reading "12 tutorials" above a list of 13. Every URL resolved, so nothing else caught it.
+See the `--exact-timestamps` note under *Deploy gotchas*.
 
 ## How content flows
 
@@ -30,7 +35,7 @@ that archive pagination is walkable. Do not weaken it to make a build pass.
 S3 lovemesomecoding-db-…/lovemesomecoding/{prod|local}/
   └─ scripts/sync-content.sh → ./content/            (gitignored)
        └─ src/lib/content.ts   reads JSON, highlights code with Prism at BUILD time
-            └─ next build --output export → ./out/   (672 .html files)
+            └─ next build --output export → ./out/   (688 .html files)
                  └─ scripts/deploy.sh → s3://lovemesomecoding.com → CloudFront
 ```
 
@@ -84,6 +89,12 @@ actually types, and affected posts show a warning banner. Do not remove either g
 
 ## Deploy gotchas
 
+- **`sync-content.sh` must keep `--exact-timestamps`.** Pulling *down*, `aws s3 sync` skips a
+  same-sized object unless S3 is newer than the local copy. The derived indexes defeat both halves of
+  that test: `"count":12` → `"count":13` leaves the byte length identical, and S3's `LastModified` is
+  UTC while the local mtime is stamped at download time, so a fresh write can compare as older. The
+  result was a build that read a stale category count and shipped it. `verify-build.mjs` check 6 is
+  the backstop.
 - **`aws s3 sync` skips unchanged files, so their metadata never updates.** Changing `Cache-Control`
   would never reach objects already in the bucket. Non-fingerprinted files upload with
   `cp --recursive`; `_next/static` stays on `sync` (fingerprinted, immutable).

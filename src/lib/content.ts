@@ -17,6 +17,45 @@ import 'prismjs/components/prism-markdown';
 import 'prismjs/components/prism-groovy';
 import 'prismjs/components/prism-kotlin';
 import 'prismjs/components/prism-docker';
+// The React track is written in TypeScript. tsx depends on jsx and typescript,
+// and both depend on grammars Prism core already ships, so the order matters.
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-tsx';
+// The Spring Boot track quotes application.properties constantly. Standalone
+// grammar — it depends on nothing else, so its position here does not matter.
+import 'prismjs/components/prism-properties';
+// The Angular track styles with Bootstrap overrides written in Sass. scss
+// extends the css grammar, which Prism core already ships.
+import 'prismjs/components/prism-scss';
+// The Docker track serves both single-page apps from nginx, so every image
+// lesson quotes an nginx.conf. Standalone grammar, depends on nothing else.
+import 'prismjs/components/prism-nginx';
+// The Hasura track quotes GraphQL more than anything else -- queries, mutations,
+// subscriptions and SDL. This import must stay in lockstep with "graphql" in the
+// backend's SUPPORTED_LANGUAGES: the backend decides the language-graphql class,
+// and a class with no grammar behind it highlights as nothing at build time.
+import 'prismjs/components/prism-graphql';
+
+// The System Design track quotes the Redis EVAL script that makes its rate limiter atomic.
+// Same lockstep rule as graphql above: the backend emits language-lua, and a class with no
+// grammar behind it highlights as nothing at build time.
+import 'prismjs/components/prism-lua';
+
+// The Terraform track is written almost entirely in HCL — every lesson quotes
+// resource/variable/module blocks, and lessons 12-14 are little else. Same
+// lockstep rule as graphql and lua above: the backend emits language-hcl, and a
+// class with no grammar behind it highlights as nothing at build time.
+import 'prismjs/components/prism-hcl';
+
+// The Vue track is written in single-file components. Prism ships NO `vue`
+// grammar, and it does not need one: prism-markup already highlights a
+// <script> block's contents as JavaScript and a <style> block's as CSS, which
+// is precisely an SFC's three sections. Registering the alias keeps the emitted
+// class honestly `language-vue` while reusing the grammar that already works.
+// Same lockstep rule as graphql, lua and hcl above: the backend emits
+// language-vue, and a class with no grammar behind it highlights as nothing.
+Prism.languages.vue = Prism.languages.markup;
 
 const ROOT = path.join(process.cwd(), 'content');
 

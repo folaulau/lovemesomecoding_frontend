@@ -56,13 +56,15 @@ const KEEP = new Set([
   'interviews', 'software-engineering', 'java-regex', 'swebestpractice',
   'datadog-table-of-content', 'jquery-table-of-content', 'test-driven-development-table-of-content',
 ]);
+// java-8 and java-advanced were folded into `java` (2026-08-20), so no archive
+// renders their URL any more. They now rely on the explicit entries in
+// redirects.json, which the guard at the top of the loop below protects.
 const SHADOWED = new Set([
-  'java-8', 'java-advanced', 'java-interview', 'data-structure-algorithm',
+  'java-interview', 'data-structure-algorithm',
   'swedesignpattern', 'brainteaser', 'algorithm-interview',
 ]);
 const TOC_OVERRIDES = {
   'postgres-table-of-content': 'postgre',
-  'react-native-table-of-content': 'rea-native',
 };
 
 const categorySlugs = new Set(read('index', 'categories.json').map((c) => c.slug));
@@ -78,6 +80,9 @@ redirects['/page'] = '/';
 redirects['/page/1'] = '/';
 
 for (const url of pageUrls) {
+  // An explicit entry in content/redirects.json is a deliberate destination and
+  // must not be overwritten by the generic `-> /` fallback below.
+  if (redirects[`/${url}`]) continue;
   if (KEEP.has(url) || SHADOWED.has(url)) continue;
   if (url === 'brainteaser/brain-teaser') continue; // post owns this URL now
   if (url === 'sample-page') {

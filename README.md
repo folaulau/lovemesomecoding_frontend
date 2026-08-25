@@ -1,7 +1,7 @@
 # lovemesomecoding_frontend
 
-Next.js 14 static export for [lovemesomecoding.com](https://lovemesomecoding.com) — 512 migrated
-tutorials served from S3 + CloudFront with no server in the read path.
+Next.js 14 static export for [lovemesomecoding.com](https://lovemesomecoding.com) — 525 tutorials
+(512 of them migrated off WordPress) served from S3 + CloudFront with no server in the read path.
 
 ## Local development
 
@@ -20,8 +20,8 @@ AWS_PROFILE=folau npm run dev
 ```
 
 `npm run dev` syncs the **local** content tree, so the site and the admin both work against
-content that cannot affect production. Verified: creating a post here takes local to 513 while
-production stays at 512 and returns 404 for the new slug.
+content that cannot affect production. Verified: creating a post here raises the local tree's count
+by one while production is untouched and returns 404 for the new slug.
 
 Hot reload on both. Admin: `folauk` / `folaulisa1`.
 
@@ -73,8 +73,8 @@ The IAM principal needs `s3:PutObject`/`DeleteObject`/`ListBucket` on `lovemesom
 `s3:GetObject`/`ListBucket` on the content bucket, and
 `cloudfront:CreateInvalidation` on the distribution.
 
-`npm run build` **fails** if any of the 512 indexed post URLs stops resolving. That guard is the
-whole point — see `scripts/verify-build.mjs`.
+`npm run build` **fails** if any indexed post URL stops resolving — the 512 migrated ones above all.
+That guard is the whole point — see `scripts/verify-build.mjs`.
 
 ## How content flows
 
@@ -82,7 +82,7 @@ whole point — see `scripts/verify-build.mjs`.
 S3 (lovemesomecoding-db-…/lovemesomecoding/prod)
   └─ sync-content.sh → ./content/
        └─ src/lib/content.ts  (reads JSON, highlights code with Prism at BUILD time)
-            └─ next build --output export → ./out/  (569 .html files)
+            └─ next build --output export → ./out/  (688 .html files)
                  └─ deploy.sh → s3://lovemesomecoding.com → CloudFront
 ```
 

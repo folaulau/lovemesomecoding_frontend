@@ -9,10 +9,11 @@ import { allCategories, allPageUrls } from './content';
  * moment a post is added. Those are retired in favour of generated archives and
  * 301'd to the real category.
  *
- * Seven more pages (java-8, java-advanced, ...) shadowed a category of the same
- * name, so on WordPress `/java-8` showed a stale hand-written list instead of the
- * 36 posts actually in that category. Dropping the page lets the archive take the
- * URL — same address, live content, nothing to redirect.
+ * Five more pages (java-interview, data-structure-algorithm, ...) shadow a
+ * category of the same name, so on WordPress `/java-interview` showed a stale
+ * hand-written list instead of the posts actually in that category. Dropping the
+ * page lets the archive take the URL — same address, live content, nothing to
+ * redirect.
  */
 
 /** Pages carrying real editorial content that nothing else replaces. */
@@ -34,8 +35,9 @@ const KEEP = new Set([
 
 /** Pages whose slug collides with a category; the archive wins the URL. */
 const SHADOWED_BY_CATEGORY = new Set([
-  'java-8',
-  'java-advanced',
+  // 'java-8' and 'java-advanced' were here until 2026-08-20, when both
+  // categories were folded into `java`. Nothing renders those URLs now; they
+  // are 301'd to /java by an explicit entry in content/redirects.json.
   'java-interview',
   'data-structure-algorithm',
   'swedesignpattern',
@@ -46,7 +48,6 @@ const SHADOWED_BY_CATEGORY = new Set([
 /** TOC slugs that don't mechanically match their category slug. */
 const TOC_CATEGORY_OVERRIDES: Record<string, string> = {
   'postgres-table-of-content': 'postgre',
-  'react-native-table-of-content': 'rea-native',
 };
 
 /** Pages that are simply gone. */

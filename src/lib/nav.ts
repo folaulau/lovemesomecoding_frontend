@@ -2,23 +2,28 @@ import { allCategories, allPageUrls, type Category } from './content';
 
 /**
  * Top-level nav groups, mirroring the menu the WordPress site shipped.
- * Every one of the 43 non-empty category slugs appears exactly once.
+ * Every one of the 42 non-empty category slugs appears exactly once.
  */
 export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
   {
     label: 'Java',
-    slugs: ['java', 'java-8', 'java-advanced', 'java-interview', 'spring-boot',
+    // java-8 and java-advanced were folded into `java` (2026-08-20) and no
+    // longer exist as categories; their URLs 301 to /java.
+    slugs: ['java', 'java-interview', 'spring-boot',
       'spring-data', 'spring-study-guide', 'spring-interview', 'data-structure-algorithm'],
   },
   { label: 'Python', slugs: ['python', 'python-advanced', 'flask', 'fastapi', 'machine-learning'] },
-  { label: 'Data Store', slugs: ['sql', 'postgre', 'elasticsearch', 'hasura', 'mongodb', 'snowflake'] },
+  {
+    label: 'Data Store',
+    slugs: ['sql', 'oracle', 'postgre', 'elasticsearch', 'hasura', 'mongodb', 'snowflake'],
+  },
   {
     label: 'Software Engineering',
     slugs: ['swedesignpattern', 'system-design', 'backend-dev', 'frontend-dev', 'soft-skills',
       'softwaredevelopmentbestpractice', 'algorithm-interview', 'fundamental-problem',
       'how-it-works', 'brainteaser'],
   },
-  { label: 'JavaScript', slugs: ['javascript', 'react', 'rea-native', 'angular'] },
+  { label: 'JavaScript', slugs: ['javascript', 'react', 'react-native', 'angular', 'vue'] },
   { label: 'HTML & CSS', slugs: ['html', 'css'] },
   { label: 'DevOps', slugs: ['aws', 'terraform', 'linux', 'docker', 'misc'] },
   { label: 'Git', slugs: ['git'] },
@@ -30,8 +35,6 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
  * pages hang off them — so only the labels are corrected here.
  */
 const DISPLAY_NAMES: Record<string, string> = {
-  'java-8': 'Java 8+ Features',
-  'rea-native': 'React Native',
   postgre: 'Postgres',
   swedesignpattern: 'Design Patterns',
   softwaredevelopmentbestpractice: 'Best Practices',
@@ -48,6 +51,7 @@ const DISPLAY_NAMES: Record<string, string> = {
   terraform: 'Terraform',
   docker: 'Docker',
   snowflake: 'Snowflake',
+  oracle: 'Oracle',
   'system-design': 'System Design',
   'backend-dev': 'Backend Development',
   'frontend-dev': 'Frontend Development',

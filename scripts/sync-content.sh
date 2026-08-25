@@ -15,7 +15,21 @@ fi
 
 echo "syncing s3://$BUCKET/lovemesomecoding/$ENV/ -> $DEST"
 mkdir -p "$DEST"
-aws s3 sync "s3://$BUCKET/lovemesomecoding/$ENV/" "$DEST" --delete --only-show-errors "${PROFILE_ARG[@]}"
+
+# --exact-timestamps is LOAD-BEARING, not a tidy-up.
+#
+# Downloading, `aws s3 sync` skips a same-sized object unless the S3 copy is
+# NEWER than the local file. The derived indexes break both halves of that:
+# they are same-sized on many real edits (`"count":12` -> `"count":13` does not
+# change a single byte of length), and S3's LastModified is compared against a
+# local mtime that was stamped at download time, so a local file synced from the
+# other tree an hour later looks newer than a fresh write.
+#
+# That combination silently shipped `/oracle` reading "12 tutorials" while
+# listing 13. --exact-timestamps skips only on an exact timestamp match, so a
+# same-sized index change is always re-fetched.
+aws s3 sync "s3://$BUCKET/lovemesomecoding/$ENV/" "$DEST" \
+  --delete --exact-timestamps --only-show-errors "${PROFILE_ARG[@]}"
 
 echo "posts:      $(ls "$DEST/posts" 2>/dev/null | wc -l | xargs)"
 echo "pages:      $(ls "$DEST/pages" 2>/dev/null | wc -l | xargs)"
