@@ -2,7 +2,8 @@ import { allCategories, allPageUrls, type Category } from './content';
 
 /**
  * Top-level nav groups, mirroring the menu the WordPress site shipped.
- * Every one of the 42 non-empty category slugs appears exactly once.
+ * Every non-empty category slug appears at most once; a category may be left
+ * out deliberately (see algorithm-interview below).
  */
 export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
   {
@@ -19,11 +20,20 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
   },
   {
     label: 'Software Engineering',
+    // algorithm-interview was pulled out of the dropdown (2026-08-24); the
+    // category and its URLs still resolve, it just isn't linked from the nav.
+    // brainteaser was retired (2026-08-24) — its one post was an empty stub, so
+    // the category is gone from the content DB and both URLs 301 to /.
     slugs: ['swedesignpattern', 'system-design', 'backend-dev', 'frontend-dev', 'soft-skills',
-      'softwaredevelopmentbestpractice', 'algorithm-interview', 'fundamental-problem',
-      'how-it-works', 'brainteaser'],
+      'softwaredevelopmentbestpractice', 'fundamental-problem',
+      'how-it-works'],
   },
-  { label: 'JavaScript', slugs: ['javascript', 'react', 'react-native', 'angular', 'vue'] },
+  {
+    label: 'JavaScript',
+    // typescript added 2026-09-05 — a new category, sat next to `javascript` because that is
+    // the reading order, not alphabetical.
+    slugs: ['javascript', 'typescript', 'react', 'react-native', 'angular', 'vue'],
+  },
   { label: 'HTML & CSS', slugs: ['html', 'css'] },
   { label: 'DevOps', slugs: ['aws', 'terraform', 'linux', 'docker', 'misc'] },
   { label: 'Git', slugs: ['git'] },
