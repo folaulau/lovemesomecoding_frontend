@@ -29,10 +29,23 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
       'how-it-works'],
   },
   {
+    // Added 2026-09-18. A new top-level group rather than a slot in an existing one: iOS is not
+    // JavaScript and it is not general software engineering, and a reader looking for mobile
+    // should not have to guess which dropdown it was filed under.
+    //
+    // `react-native` deliberately stays under JavaScript for now. It is a mobile framework and it
+    // would read well here, but moving it changes where an existing category appears in the nav,
+    // and that is a separate decision from adding a new one. Folau's call, 2026-09-18.
+    label: 'Mobile',
+    slugs: ['ios'],
+  },
+  {
     label: 'JavaScript',
     // typescript added 2026-09-05 — a new category, sat next to `javascript` because that is
     // the reading order, not alphabetical.
-    slugs: ['javascript', 'typescript', 'react', 'react-native', 'angular', 'vue'],
+    // nestjs added 2026-09-05, straight after `typescript` for the same reason: Nest is
+    // TypeScript applied to a server, and reads as the lesson after the language.
+    slugs: ['javascript', 'typescript', 'nestjs', 'react', 'react-native', 'angular', 'vue'],
   },
   { label: 'HTML & CSS', slugs: ['html', 'css'] },
   { label: 'DevOps', slugs: ['aws', 'terraform', 'linux', 'docker', 'misc'] },
@@ -67,6 +80,9 @@ const DISPLAY_NAMES: Record<string, string> = {
   'frontend-dev': 'Frontend Development',
   'spring-interview': 'Spring Interview',
   sql: 'SQL',
+  // The content DB will hold this as "Ios" or "iOS" depending on how it is seeded; pinning the
+  // label here means the nav always reads correctly whatever the category record says.
+  ios: 'iOS',
   aws: 'AWS',
   css: 'CSS',
   html: 'HTML',

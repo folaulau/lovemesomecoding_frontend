@@ -48,6 +48,13 @@ import 'prismjs/components/prism-lua';
 // class with no grammar behind it highlights as nothing at build time.
 import 'prismjs/components/prism-hcl';
 
+// The iOS track is written in Swift. Standalone grammar — it extends clike,
+// which Prism core already ships, so its position here does not matter. Same
+// lockstep rule as graphql, lua and hcl above: the backend emits
+// language-swift, and a class with no grammar behind it highlights as nothing
+// at build time.
+import 'prismjs/components/prism-swift';
+
 // The Vue track is written in single-file components. Prism ships NO `vue`
 // grammar, and it does not need one: prism-markup already highlights a
 // <script> block's contents as JavaScript and a <style> block's as CSS, which
