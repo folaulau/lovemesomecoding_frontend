@@ -472,6 +472,81 @@ a:hover { text-decoration: underline; }
 .site-footer a:hover { color: var(--brand); }
 .site-footer .copy { margin-top: 12px; color: #7d8394; font-size: 0.8rem; }
 
+/* ---------------- about page ----------------
+   The About Me body (edited in /admin → Pages) uses these class names, and a few
+   Bootstrap ones (row, col-4, text-center, btn-light). WordPress's theme styled
+   them; nothing here did after the migration, so the page rendered as plain text.
+   Scoped to .prose so nothing leaks into site chrome. `row` and `text-center` are
+   tied to About Me's own structure: 184 migrated posts carry WordPress `row`
+   classes and Contact uses `text-center`, and a bare rule would restyle them all. */
+
+.prose .about-hero { text-align: center; margin-bottom: 28px; }
+.prose .about-hero img {
+  width: 150px; height: 150px; object-fit: cover; border-radius: 50%;
+  border: 4px solid var(--brand); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+.prose .about-hero h2 { margin: 14px 0 4px; }
+.prose .subtitle { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 14px; }
+.prose .social-link {
+  display: inline-flex; align-items: center; gap: 6px; margin: 0 4px;
+  padding: 7px 16px; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--text); font-weight: 600; font-size: 0.92rem;
+}
+.prose .social-link:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
+
+.prose .about-hero + .row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; text-align: center;
+}
+.prose .about-section.text-center { text-align: center; }
+.prose .col-4 {
+  background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 18px 8px;
+}
+.prose .stat-number { font-size: 2rem; font-weight: 700; color: var(--brand); line-height: 1.1; }
+.prose .stat-label { color: var(--text-muted); font-size: 0.88rem; margin-top: 4px; }
+
+.prose .about-section { margin-bottom: 30px; }
+.prose .about-section h4 {
+  font-size: 1.2rem; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border);
+}
+.prose .highlight-card {
+  background: var(--brand-soft); border-left: 4px solid var(--brand);
+  border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin-bottom: 1.05em;
+}
+/* The stored list carries an inline color: #555, unreadable on the dark theme. */
+.prose .about-section ol { color: var(--text) !important; }
+
+.prose .tech-category {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--text-muted); margin: 16px 0 8px;
+}
+.prose .tech-badge {
+  display: inline-block; margin: 0 6px 8px 0; padding: 5px 12px; border-radius: 999px;
+  font-size: 0.85rem; font-weight: 600; color: #fff; background: #555e6c;
+}
+.prose .bg-java { background: #b07219; }
+.prose .bg-spring { background: #3d7a1f; }
+.prose .bg-python { background: #3572a5; }
+.prose .bg-js { background: #f0db4f; color: #1c1e26; }
+.prose .bg-web { background: #d1432a; }
+.prose .bg-devops { background: #b5002b; }
+.prose .bg-sql { background: #336791; }
+.prose .bg-cloud { background: #c25e00; }
+.prose .bg-aws { background: #ff9900; color: #1c1e26; }
+.prose .bg-docker { background: #1d63ed; }
+.prose .bg-tool { background: #555e6c; }
+
+/* "Let's Connect" banner — its gradient and text colours are inline in the body. */
+.prose .btn-light {
+  display: inline-block; background: #fff; color: #0056b3 !important; margin-top: 6px;
+}
+.prose .btn-light:hover { background: #eef4ff; text-decoration: none; }
+
+@media (max-width: 576px) {
+  .prose .about-hero + .row { gap: 8px; }
+  .prose .stat-number { font-size: 1.5rem; }
+  .prose .social-link { margin: 4px; }
+}
+
 /* ---------------- responsive ---------------- */
 
 @media (max-width: 992px) {

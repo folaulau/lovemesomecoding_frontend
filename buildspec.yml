@@ -1,0 +1,30 @@
+# AWS CodeBuild — what "Publish site" in /admin runs.
+#
+# The project (lovemesomecoding-site-build-prod, defined in the backend's
+# template.yaml) builds from s3://…-db-…/build/frontend-source.zip, which
+# scripts/deploy.sh uploads on every deploy. So a publish rebuilds the code that
+# is live against the current content — the same `npm run deploy` as a laptop.
+version: 0.2
+
+env:
+  variables:
+    # sync-content.sh and deploy.sh drop `--profile` under CI; the build role
+    # supplies credentials.
+    CI: "true"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands:
+      - npm ci --no-audit --no-fund
+  build:
+    commands:
+      - echo "publish requested by ${PUBLISH_REASON:-unknown}"
+      # version.txt reads e.g. b1eac33-dirty-publish12: which code, which publish.
+      - export BUILD_ID="$(cat .source-version 2>/dev/null || echo nosource)-publish${CODEBUILD_BUILD_NUMBER}"
+      - npm run deploy
+
+cache:
+  paths:
+    - /root/.npm/**/*

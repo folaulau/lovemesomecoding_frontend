@@ -5,12 +5,8 @@ on:
     branches: [main]
   # Manual run from the Actions tab.
   workflow_dispatch:
-  # Fired by the admin API after a post is published — this is what makes
-  # "static rebuild on publish" work. Send:
-  #   POST /repos/folaulau/lovemesomecoding_frontend/dispatches
-  #   {"event_type": "publish"}
-  repository_dispatch:
-    types: [publish]
+  # "Publish site" in /admin no longer comes through here: it runs AWS CodeBuild
+  # (buildspec.yml) from the source copy scripts/deploy.sh uploads to S3.
 
 concurrency:
   # A newer publish supersedes an in-flight one; never let two deploys race.
@@ -68,13 +64,14 @@ jobs:
           set -euo pipefail
           BASE="https://lovemesomecoding.com"
           fail=0
-          for path in / /page/2 /java-8/java-25-migration-guide /java-8 /sitemap.xml /rss.xml /robots.txt; do
+          for path in / /page/2 /java/java-25-migration-guide /java /about-me /sitemap.xml /rss.xml /robots.txt; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 "$BASE$path")
             echo "  $code  $path"
             [ "$code" = "200" ] || fail=1
           done
-          # Retired pages must 301, not 404.
-          for path in /java-table-of-content /wp-sitemap.xml /page/1; do
+          # Retired pages must 301, not 404. java-8 was folded into java on 2026-08-20;
+          # its indexed URLs now redirect, so they belong here rather than above.
+          for path in /java-table-of-content /wp-sitemap.xml /page/1 /java-8 /java-8/java-25-migration-guide; do
             code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$path")
             echo "  $code  $path (expect 301)"
             [ "$code" = "301" ] || fail=1

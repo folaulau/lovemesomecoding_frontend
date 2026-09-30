@@ -116,8 +116,13 @@ actually types, and affected posts show a warning banner. Do not remove either g
 | Edge function | `lovemesomecoding-router` |
 | CI secrets | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CLOUDFRONT_DIST_ID` |
 
-GitHub Actions runs on push to `main`, manual dispatch, and `repository_dispatch` type `publish` —
-that last one is what the admin API calls to rebuild after a post is published.
+GitHub Actions runs on push to `main` and on manual dispatch. **Publish in `/admin` does not use it**:
+it runs AWS CodeBuild (`buildspec.yml`) from `s3://…-db-…/build/frontend-source.zip`.
+
+**`deploy.sh` uploads that zip on every deploy, and the upload is fatal.** It is the working tree as
+just built (tracked + untracked, minus `.gitignore`), not `HEAD`, because a laptop deploy can ship
+uncommitted work. If it ever went stale, the next Publish would silently roll back code on the live
+site. `version.txt` from a publish reads `<sha>[-dirty]-publish<N>`.
 
 ## Git
 - Do **not** add `Co-Authored-By` or any author trailer.

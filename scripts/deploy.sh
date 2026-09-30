@@ -19,10 +19,35 @@ fi
 
 # A build marker so the deploy can prove the edge is serving THIS build and not
 # a cached previous one. Any unique value works; the git sha is the most useful.
-BUILD_ID="${GITHUB_SHA:-$(git rev-parse --short HEAD 2>/dev/null || date +%s)}"
+# CodeBuild (Publish) has no .git and sets BUILD_ID itself from .source-version.
+BUILD_ID="${BUILD_ID:-${GITHUB_SHA:-$(git rev-parse --short HEAD 2>/dev/null || date +%s)}}"
 echo "$BUILD_ID" > "$OUT/version.txt"
 
 echo "deploying $(find "$OUT" -type f | wc -l | xargs) files to s3://$BUCKET (build $BUILD_ID)"
+
+# ---------------------------------------------------------------- source copy
+# "Publish site" in /admin rebuilds in AWS CodeBuild from this zip, so it must
+# always be the code that is live — a stale copy would quietly roll back code
+# changes on the next publish. Hence: upload it on EVERY deploy, before the site,
+# and fail the deploy if it cannot be written.
+#
+# It is the working tree exactly as it was just built (tracked + untracked, minus
+# .gitignore'd), not HEAD, because a laptop deploy can ship uncommitted changes.
+# CodeBuild itself skips this: its tree IS the zip.
+if [[ -z "${CODEBUILD_BUILD_ID:-}" ]]; then
+  SOURCE_BUCKET="${CONTENT_BUCKET:-lovemesomecoding-db-329580012644-us-west-2-an}"
+  ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+  STAGE="$(mktemp -d)"
+  trap 'rm -rf "$STAGE"' EXIT
+  DIRTY=""
+  [[ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ]] && DIRTY="-dirty"
+  echo "$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo nogit)$DIRTY" > "$STAGE/.source-version"
+  (cd "$ROOT" && git ls-files -z -co --exclude-standard | xargs -0 zip -q "$STAGE/source.zip")
+  (cd "$STAGE" && zip -q source.zip .source-version)
+  aws s3 cp "$STAGE/source.zip" "s3://$SOURCE_BUCKET/build/frontend-source.zip" \
+    --only-show-errors "${PROFILE_ARG[@]}"
+  echo "source copy for Publish: $(cat "$STAGE/.source-version") ($(du -h "$STAGE/source.zip" | cut -f1 | xargs))"
+fi
 
 # ---------------------------------------------------------------- edge function
 # The redirect map is compiled into the CloudFront Function, so a redirect added

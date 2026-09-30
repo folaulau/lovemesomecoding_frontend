@@ -87,17 +87,53 @@ export default function AdminPage() {
     setNotice(null);
     try {
       const result = await api.publish();
-      setNotice({
-        kind: result.triggered ? 'ok' : 'error',
-        text: result.triggered
-          ? 'Rebuild started — the site updates in about 3–5 minutes.'
-          : `Rebuild not started: ${result.detail}`,
-      });
+      if (!result.triggered) {
+        setNotice({ kind: 'error', text: `Rebuild not started: ${result.detail}` });
+        setPublishing(false);
+        return;
+      }
+      setNotice({ kind: 'ok', text: 'Rebuilding the site — this takes about 4–6 minutes…' });
+      watchBuild(result.buildId);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : 'Publish failed' });
-    } finally {
       setPublishing(false);
     }
+  }
+
+  /** Polls the rebuild until it finishes, so "published" means live, not "requested". */
+  function watchBuild(buildId: string | null) {
+    const started = Date.now();
+    const tick = async () => {
+      try {
+        const build = await api.publishStatus();
+        // The status endpoint reports the newest build; until ours shows up, keep waiting.
+        if (build.buildId === buildId && build.status && build.status !== 'IN_PROGRESS') {
+          setPublishing(false);
+          setNotice(
+            build.status === 'SUCCEEDED'
+              ? { kind: 'ok', text: 'Published — the site is live with your changes.' }
+              : {
+                  kind: 'error',
+                  text: `Rebuild ${build.status.toLowerCase().replace('_', ' ')} during ${build.phase?.toLowerCase()} — the live site is unchanged. Logs: CodeBuild project lovemesomecoding-site-build-prod.`,
+                },
+          );
+          return;
+        }
+        const minutes = Math.floor((Date.now() - started) / 60000);
+        setNotice({
+          kind: 'ok',
+          text: `Rebuilding the site${build.phase ? ` (${build.phase.toLowerCase()})` : ''} — ${minutes} min so far, usually 4–6…`,
+        });
+      } catch {
+        /* a transient status error must not stop the watch */
+      }
+      if (Date.now() - started < 25 * 60000) setTimeout(tick, 15000);
+      else {
+        setPublishing(false);
+        setNotice({ kind: 'error', text: 'Still no result after 25 minutes — check CodeBuild.' });
+      }
+    };
+    setTimeout(tick, 15000);
   }
 
   if (checking) return <div className="admin-shell">Checking session…</div>;

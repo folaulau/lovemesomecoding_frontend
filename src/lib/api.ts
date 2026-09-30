@@ -163,7 +163,20 @@ export const api = {
   savePage: (slug: string, page: { title: string; contentHtml: string }) =>
     request<PageDto>(`/pages/${slug}`, { method: 'PUT', body: JSON.stringify(page) }),
 
-  publish: () => request<{ triggered: boolean; detail: string }>('/publish', { method: 'POST' }),
+  publish: () =>
+    request<{ triggered: boolean; detail: string; buildId: string | null }>('/publish', {
+      method: 'POST',
+    }),
+
+  /** Latest site rebuild (AWS CodeBuild). status is IN_PROGRESS until it finishes. */
+  publishStatus: () =>
+    request<{
+      buildId: string | null;
+      status: string | null;
+      phase: string | null;
+      startTime: string | null;
+      endTime: string | null;
+    }>('/publish/status'),
 
   /** Two steps: ask the API for a presigned URL, then PUT the bytes straight to S3. */
   uploadImage: async (file: File) => {
