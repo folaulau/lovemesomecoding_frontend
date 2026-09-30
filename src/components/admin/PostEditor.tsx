@@ -1,21 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api, type CategoryDto, type PostDto } from '@/lib/api';
-import RichTextEditor from './RichTextEditor';
-
-/**
- * The visual editor works on a fixed schema, so markup outside it — the
- * `<div class="boldgrid-section">` wrappers WordPress left on migrated posts,
- * inline styles, arbitrary classes — cannot round-trip. Text, headings, lists,
- * tables, links and code blocks all survive; the layout scaffolding does not.
- *
- * Detecting it lets us warn instead of quietly rewriting a 40 KB tutorial.
- */
-function hasUnrepresentableMarkup(html: string): boolean {
-  const withoutCode = html.replace(/<pre[\s\S]*?<\/pre>/gi, '');
-  return /<(div|section|span|figure|iframe)\b/i.test(withoutCode) || /\sstyle="/i.test(withoutCode);
-}
+import BodyEditor from './BodyEditor';
 
 const BLANK = {
   slug: '',
@@ -52,17 +39,11 @@ export default function PostEditor({
 }) {
   const [form, setForm] = useState({ ...BLANK });
   const [original, setOriginal] = useState<PostDto | null>(null);
-  const [tab, setTab] = useState<'visual' | 'html' | 'preview'>('visual');
   const [status, setStatus] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
-  const textarea = useRef<HTMLTextAreaElement>(null);
 
   const isNew = slug === null;
-  const legacyMarkup = useMemo(
-    () => hasUnrepresentableMarkup(original?.contentHtml ?? ''),
-    [original],
-  );
 
   useEffect(() => {
     setStatus(null);
@@ -88,34 +69,6 @@ export default function PostEditor({
       .catch((err) => setStatus({ kind: 'error', text: err.message }))
       .finally(() => setLoading(false));
   }, [slug, categories]);
-
-  function insert(before: string, after = '') {
-    const el = textarea.current;
-    if (!el) return;
-    const { selectionStart: start, selectionEnd: end, value } = el;
-    const selected = value.slice(start, end);
-    const next = value.slice(0, start) + before + selected + after + value.slice(end);
-    setForm((f) => ({ ...f, contentHtml: next }));
-    requestAnimationFrame(() => {
-      el.focus();
-      el.selectionStart = start + before.length;
-      el.selectionEnd = start + before.length + selected.length;
-    });
-  }
-
-  async function uploadImage(file: File) {
-    setBusy(true);
-    setStatus(null);
-    try {
-      const result = await api.uploadImage(file);
-      insert(`<img src="${result.publicUrl}" alt="" />`);
-      setStatus({ kind: 'ok', text: `Uploaded ${file.name}` });
-    } catch (err) {
-      setStatus({ kind: 'error', text: err instanceof Error ? err.message : 'Upload failed' });
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function save(publish: boolean) {
     setBusy(true);
@@ -225,82 +178,13 @@ export default function PostEditor({
         <div className="hint">Comma separated. URL: /{form.category}/{form.slug || '…'}</div>
       </div>
 
-      <div className="editor-tabs">
-        <button className={tab === 'visual' ? 'active' : ''} onClick={() => setTab('visual')}>
-          Visual
-        </button>
-        <button className={tab === 'html' ? 'active' : ''} onClick={() => setTab('html')}>
-          HTML
-        </button>
-        <button className={tab === 'preview' ? 'active' : ''} onClick={() => setTab('preview')}>
-          Preview
-        </button>
-      </div>
-
-      {tab === 'visual' && legacyMarkup && (
-        <div className="alert alert-error" role="status">
-          <strong>Heads up:</strong> this post carries layout markup from WordPress that the visual
-          editor cannot represent. Your text, headings, lists, tables, links and code blocks are all
-          preserved, but wrapper elements and inline styles will be dropped <em>once you edit here</em>.
-          Nothing changes until you type. Use the <strong>HTML</strong> tab to keep the original markup.
-        </div>
-      )}
-
-      {tab === 'visual' ? (
-        <RichTextEditor
-          value={form.contentHtml}
-          onChange={(html) => setForm((f) => ({ ...f, contentHtml: html }))}
-          onUploadImage={async (file) => {
-            const result = await api.uploadImage(file);
-            return result.publicUrl;
-          }}
-        />
-      ) : tab === 'html' ? (
-        <>
-          <div className="toolbar">
-            <button onClick={() => insert('<h2>', '</h2>')}>H2</button>
-            <button onClick={() => insert('<h3>', '</h3>')}>H3</button>
-            <button onClick={() => insert('<p>', '</p>')}>Paragraph</button>
-            <button onClick={() => insert('<strong>', '</strong>')}>Bold</button>
-            <button onClick={() => insert('<ul>\n<li>', '</li>\n</ul>')}>List</button>
-            <button
-              onClick={() =>
-                insert('<pre data-enlighter-language="java"><code>', '</code></pre>')
-              }
-            >
-              Code block
-            </button>
-            <button onClick={() => insert('<code>', '</code>')}>Inline code</button>
-            <label className="btn" style={{ padding: '4px 9px', fontSize: '0.78rem', fontWeight: 400 }}>
-              Upload image
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) uploadImage(file);
-                  e.target.value = '';
-                }}
-              />
-            </label>
-          </div>
-          <div className="field">
-            <textarea
-              ref={textarea}
-              value={form.contentHtml}
-              onChange={(e) => setForm((f) => ({ ...f, contentHtml: e.target.value }))}
-              spellCheck={false}
-            />
-            <div className="hint">
-              Code blocks get their language from <code>data-enlighter-language</code> and are
-              highlighted at build time.
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="preview prose" dangerouslySetInnerHTML={{ __html: form.contentHtml }} />
-      )}
+      <BodyEditor
+        value={form.contentHtml}
+        savedHtml={original?.contentHtml ?? ''}
+        noun="post"
+        onChange={(html) => setForm((f) => ({ ...f, contentHtml: html }))}
+        onStatus={setStatus}
+      />
 
       <div className="row" style={{ marginTop: 16 }}>
         <button

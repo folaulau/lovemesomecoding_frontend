@@ -4,7 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Login from '@/components/admin/Login';
 import PostEditor from '@/components/admin/PostEditor';
 import CategoryManager from '@/components/admin/CategoryManager';
-import { api, auth, type AdminUser, type CategoryDto, type PostSummaryDto } from '@/lib/api';
+import PageEditor from '@/components/admin/PageEditor';
+import {
+  api,
+  auth,
+  type AdminUser,
+  type CategoryDto,
+  type PageSummaryDto,
+  type PostSummaryDto,
+} from '@/lib/api';
 
 /**
  * Single-page admin console.
@@ -21,7 +29,9 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [filter, setFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [view, setView] = useState<'list' | 'editor' | 'categories'>('list');
+  const [pages, setPages] = useState<PageSummaryDto[]>([]);
+  const [editingPage, setEditingPage] = useState<string | null>(null);
+  const [view, setView] = useState<'list' | 'editor' | 'categories' | 'pages'>('list');
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null);
   const [publishing, setPublishing] = useState(false);
@@ -42,12 +52,15 @@ export default function AdminPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [postList, categoryList] = await Promise.all([
+      const [postList, categoryList, pageList] = await Promise.all([
         api.listPosts({ includeDrafts: true }),
         api.listCategories(),
+        // Pages are secondary: an API without /pages must not take the post list down with it.
+        api.listPages().catch(() => [] as PageSummaryDto[]),
       ]);
       setPosts(postList);
       setCategories(categoryList);
+      setPages(pageList);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : 'Load failed' });
       if (err instanceof Error && err.message.includes('Session expired')) setUser(null);
@@ -103,6 +116,9 @@ export default function AdminPage() {
         <button className="btn" onClick={() => setView('categories')}>
           Categories
         </button>
+        <button className="btn" onClick={() => setView('pages')}>
+          Pages
+        </button>
         <button
           className="btn"
           onClick={() => {
@@ -134,6 +150,54 @@ export default function AdminPage() {
           onChanged={refresh}
           onClose={() => setView('list')}
         />
+      ) : view === 'pages' ? (
+        <div className="admin-grid">
+          <div className="admin-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <strong>Pages</strong>
+              <button
+                className="btn"
+                onClick={() => {
+                  setEditingPage(null);
+                  setView('list');
+                }}
+              >
+                Back to posts
+              </button>
+            </div>
+            <div className="post-rows">
+              {pages.length === 0 && <div className="hint">No pages loaded.</div>}
+              {pages.map((page) => (
+                <button
+                  key={page.slug}
+                  className={`post-row${editingPage === page.slug ? ' active' : ''}`}
+                  onClick={() => setEditingPage(page.slug)}
+                >
+                  <div className="t">{page.title}</div>
+                  <div className="m">
+                    {page.url} · {page.modified?.slice(0, 10)}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {editingPage ? (
+            <PageEditor
+              slug={editingPage}
+              onSaved={() => refresh()}
+              onCancel={() => setEditingPage(null)}
+            />
+          ) : (
+            <div className="admin-card">
+              <p className="hint" style={{ margin: 0 }}>
+                Select a page to edit. These are the site&apos;s fixed pages — About Me, Contact, the
+                policies — so they can be edited but not created or deleted. As with posts, changes
+                appear on the live site after <strong>Publish site</strong>.
+              </p>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="admin-grid">
           <div className="admin-card">

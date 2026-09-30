@@ -36,6 +36,20 @@ export type CategoryDto = {
   url: string;
 };
 
+export type PageSummaryDto = {
+  slug: string;
+  title: string;
+  url: string;
+  modified: string;
+};
+
+export type PageDto = PageSummaryDto & {
+  contentHtml: string;
+  toc: { id: string; text: string; level: number }[];
+  date: string;
+  updatedBy?: string;
+};
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -140,6 +154,14 @@ export const api = {
 
   deleteCategory: (slug: string) =>
     request<{ deleted: string }>(`/categories/${slug}`, { method: 'DELETE' }),
+
+  listPages: () => request<PageSummaryDto[]>('/pages'),
+
+  getPage: (slug: string) => request<PageDto>(`/pages/${slug}`),
+
+  /** Update only — the set of pages is fixed by the frontend, so there is no create or delete. */
+  savePage: (slug: string, page: { title: string; contentHtml: string }) =>
+    request<PageDto>(`/pages/${slug}`, { method: 'PUT', body: JSON.stringify(page) }),
 
   publish: () => request<{ triggered: boolean; detail: string }>('/publish', { method: 'POST' }),
 
