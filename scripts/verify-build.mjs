@@ -129,6 +129,30 @@ const sitemap = fs.existsSync(path.join(out, 'sitemap.xml'))
 const notInSitemap = posts.filter((p) => !sitemap.includes(`${p.url}<`));
 if (notInSitemap.length) warnings.push(`${notInSitemap.length} post(s) absent from sitemap.xml`);
 
+// 9. Analytics is on every public page and never on the admin console.
+//    Reads .env.production itself: postbuild runs outside Next, so the NEXT_PUBLIC_
+//    vars are not in this process's environment.
+const envProd = fs.readFileSync(path.join(root, '.env.production'), 'utf-8');
+const gaId = envProd.match(/^NEXT_PUBLIC_GA_ID=(\S+)/m)?.[1];
+const gaTag = (file) => fs.readFileSync(path.join(out, file), 'utf-8').includes(`data-ga="${gaId}"`);
+let gaChecked = 0;
+if (!gaId) {
+  warnings.push('NEXT_PUBLIC_GA_ID unset — site ships without analytics');
+} else {
+  const samplePost = posts[0] && `${posts[0].url.replace(/^\//, '')}.html`;
+  const mustHave = ['index.html', samplePost, categories[0] && `${categories[0].url.replace(/^\//, '')}.html`]
+    .filter((f) => f && fs.existsSync(path.join(out, f)));
+  const untagged = mustHave.filter((f) => !gaTag(f));
+  if (untagged.length) failures.push(`GA tag ${gaId} missing from: ${untagged.join(', ')}`);
+  // admin.html still carries the tag (shared layout) — it is the inline path guard that
+  // keeps it silent, so assert that guard is in the shipped markup.
+  const admin = fs.readFileSync(path.join(out, 'admin.html'), 'utf-8');
+  if (gaTag('admin.html') && !admin.includes('\\/admin(\\/|$)')) {
+    failures.push('admin.html loads GA with no /admin path guard');
+  }
+  gaChecked = mustHave.length;
+}
+
 /* ----------------------------- report ----------------------------- */
 
 const htmlCount = (function walk(dir) {
@@ -147,6 +171,7 @@ console.log(`  pages redirected   ${Object.keys(redirects).length}`);
 console.log(`  archive pages      ${expectedPages - 1} (/page/2../page/${expectedPages})`);
 console.log(`  index cross-check  ${categories.length - countMismatches.length}/${categories.length} category counts agree`);
 console.log(`  html files emitted ${htmlCount}`);
+console.log(`  analytics          ${gaId ? `${gaId} on ${gaChecked} sampled page(s), admin guarded` : 'off'}`);
 
 for (const w of warnings) console.warn(`  warn: ${w}`);
 

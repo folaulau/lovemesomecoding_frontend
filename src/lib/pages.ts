@@ -38,10 +38,11 @@ const SHADOWED_BY_CATEGORY = new Set([
   // 'java-8' and 'java-advanced' were here until 2026-08-20, when both
   // categories were folded into `java`. Nothing renders those URLs now; they
   // are 301'd to /java by an explicit entry in content/redirects.json.
+  // 'brainteaser' was here until 2026-08-24, when the category was retired.
+  // No archive renders that URL now, so it falls through to the `-> /` rule.
   'java-interview',
   'data-structure-algorithm',
   'swedesignpattern',
-  'brainteaser',
   'algorithm-interview',
 ]);
 
@@ -53,8 +54,8 @@ const TOC_CATEGORY_OVERRIDES: Record<string, string> = {
 /** Pages that are simply gone. */
 const DROP: Record<string, string> = {
   'sample-page': '/',
-  // Exists as both a page and a post; the post keeps the URL.
-  'brainteaser/brain-teaser': '/brainteaser/brain-teaser',
+  // 'brainteaser/brain-teaser' was here — the post owned the URL until the post
+  // itself was deleted (2026-08-24). It now takes the `-> /` fallback.
 };
 
 function tocTarget(pageUrl: string): string | null {
@@ -88,8 +89,7 @@ export function pageRedirects(): Record<string, string> {
     if (KEEP.has(url)) continue;
 
     if (url in DROP) {
-      // brainteaser/brain-teaser resolves to itself — the post serves it now.
-      if (DROP[url] !== `/${url}`) map[`/${url}`] = DROP[url];
+      map[`/${url}`] = DROP[url];
       continue;
     }
     if (SHADOWED_BY_CATEGORY.has(url)) continue; // same URL, archive renders it

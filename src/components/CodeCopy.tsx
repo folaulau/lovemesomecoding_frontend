@@ -2,6 +2,12 @@
 
 import { useEffect } from 'react';
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 /**
  * Wires up the copy buttons that content.ts bakes into every code block.
  * One delegated listener rather than hydrating 5000+ React buttons.
@@ -17,6 +23,11 @@ export default function CodeCopy() {
 
       try {
         await navigator.clipboard.writeText(code.textContent ?? '');
+        // No-op wherever Analytics did not load (dev, preview, /admin).
+        window.gtag?.('event', 'code_copy', {
+          language: code.className.match(/language-([\w-]+)/)?.[1] ?? 'unknown',
+          page_path: location.pathname,
+        });
         const original = button.textContent;
         button.textContent = 'Copied';
         setTimeout(() => {

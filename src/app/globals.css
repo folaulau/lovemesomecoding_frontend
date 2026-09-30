@@ -482,6 +482,9 @@ a:hover { text-decoration: underline; }
     top: var(--nav-h);
     left: 0;
     right: 0;
+    /* The base rule's height: 100% resolves to the 56px bar here, clipping every
+       group below the first link inside the scroll box. */
+    height: auto;
     background: var(--nav-bg);
     padding: 8px 0;
     max-height: 78vh;
@@ -494,7 +497,10 @@ a:hover { text-decoration: underline; }
   .nav-toggle { display: block; }
   .sidebar { display: none; }
   .content { padding: 22px 18px 60px; }
-  .search input { width: 140px; }
+  /* Let search absorb the squeeze so the bar never runs wider than a phone. */
+  .nav-right { flex: 1 1 auto; min-width: 0; justify-content: flex-end; }
+  .search { flex: 0 1 140px; min-width: 0; }
+  .search input { width: 100%; }
   .hero h1 { font-size: 2rem; }
   .article-head h1 { font-size: 1.6rem; }
 }

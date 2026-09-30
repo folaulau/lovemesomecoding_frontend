@@ -59,9 +59,12 @@ const KEEP = new Set([
 // java-8 and java-advanced were folded into `java` (2026-08-20), so no archive
 // renders their URL any more. They now rely on the explicit entries in
 // redirects.json, which the guard at the top of the loop below protects.
+// 'brainteaser' was retired (2026-08-24): its only post was an empty stub, so
+// the post, the category and the archive are all gone from the content DB and
+// both /brainteaser and /brainteaser/brain-teaser take the `-> /` fallback.
 const SHADOWED = new Set([
   'java-interview', 'data-structure-algorithm',
-  'swedesignpattern', 'brainteaser', 'algorithm-interview',
+  'swedesignpattern', 'algorithm-interview',
 ]);
 const TOC_OVERRIDES = {
   'postgres-table-of-content': 'postgre',
@@ -84,7 +87,6 @@ for (const url of pageUrls) {
   // must not be overwritten by the generic `-> /` fallback below.
   if (redirects[`/${url}`]) continue;
   if (KEEP.has(url) || SHADOWED.has(url)) continue;
-  if (url === 'brainteaser/brain-teaser') continue; // post owns this URL now
   if (url === 'sample-page') {
     redirects['/sample-page'] = '/';
     continue;
