@@ -419,6 +419,38 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 
+/* homepage "Most viewed" — posts tagged most-view */
+.mv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; }
+.mv-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--brand);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.mv-card:hover {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+.mv-card .g { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--brand-dark); font-weight: 700; }
+:root[data-theme='dark'] .mv-card .g { color: #3ddc9a; }
+.mv-card .n { font-size: 1.1rem; font-weight: 600; margin: 6px 0 8px; line-height: 1.35; }
+.mv-card .e {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mv-card .c { color: var(--text-muted); font-size: 0.8rem; margin-top: auto; padding-top: 12px; }
+
 /* separates the latest-posts block from Browse by topic */
 .section-gap { height: 54px; }
 

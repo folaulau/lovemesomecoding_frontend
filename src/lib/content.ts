@@ -213,6 +213,20 @@ export function postsPage(page: number): PostsPage {
   };
 }
 
+/* ------------------------------------------------------------------ *
+ * Homepage "Most viewed" picks.
+ *
+ * Hand-curated: tag a post `most-view` in /admin and it appears at the top of
+ * the homepage on the next Publish. Tags are already in index/posts.json, so
+ * this needs no backend change. Order follows the index (newest first).
+ * ------------------------------------------------------------------ */
+
+export const MOST_VIEWED_TAG = 'most-view';
+
+export function postsWithTag(tag: string): PostSummary[] {
+  return allPosts().filter((p) => p.tags?.includes(tag));
+}
+
 export function postsInCategory(slug: string): PostSummary[] {
   if (!exists('index', 'by-category', `${slug}.json`)) return [];
   return readJson<PostSummary[]>('index', 'by-category', `${slug}.json`);

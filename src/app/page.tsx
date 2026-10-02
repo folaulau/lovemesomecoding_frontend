@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import LatestPosts from '@/components/LatestPosts';
 import BrowseByTopic from '@/components/BrowseByTopic';
-import { allPosts, postsPage } from '@/lib/content';
+import MostViewed from '@/components/MostViewed';
+import { MOST_VIEWED_TAG, allPosts, postsPage, postsWithTag } from '@/lib/content';
 
 export default function Home() {
   // The homepage is page 1 of the latest-posts archive; /page/2 continues it.
   const page = postsPage(1);
+  const mostViewed = postsWithTag(MOST_VIEWED_TAG);
 
   return (
     <>
@@ -23,6 +25,12 @@ export default function Home() {
       </section>
 
       <div className="home-wrap">
+        {mostViewed.length > 0 && (
+          <>
+            <MostViewed posts={mostViewed} />
+            <div className="section-gap" />
+          </>
+        )}
         <LatestPosts page={page} />
         <div className="section-gap" />
         <BrowseByTopic />
