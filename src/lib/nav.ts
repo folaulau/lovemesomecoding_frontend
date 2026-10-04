@@ -50,7 +50,12 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
   { label: 'HTML & CSS', slugs: ['html', 'css'] },
   { label: 'DevOps', slugs: ['aws', 'terraform', 'linux', 'docker', 'misc'] },
   { label: 'Git', slugs: ['git'] },
-  { label: 'AI', slugs: ['claude'] },
+  {
+    label: 'AI',
+    // ai-engineering added 2026-10-04, after `claude`: the older posts teach the tool, the new
+    // track teaches the job with it, which is the reading order. navTree() hides it until seeded.
+    slugs: ['claude', 'ai-engineering'],
+  },
 ];
 
 /**

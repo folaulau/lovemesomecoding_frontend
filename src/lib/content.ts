@@ -55,6 +55,10 @@ import 'prismjs/components/prism-hcl';
 // at build time.
 import 'prismjs/components/prism-swift';
 
+// The AI-Assisted Engineering track quotes unified diffs — reading them is its subject. Standalone
+// grammar. Lockstep with the backend's SUPPORTED_LANGUAGES, which emits language-diff.
+import 'prismjs/components/prism-diff';
+
 // The Vue track is written in single-file components. Prism ships NO `vue`
 // grammar, and it does not need one: prism-markup already highlights a
 // <script> block's contents as JavaScript and a <style> block's as CSS, which

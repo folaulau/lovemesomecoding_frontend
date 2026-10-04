@@ -9,7 +9,7 @@ const BLANK = {
   title: '',
   category: '',
   contentHtml: '',
-  tags: [] as string[],
+  tagsText: '',
   status: 'draft',
 };
 
@@ -22,6 +22,13 @@ function slugify(value: string) {
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+}
+
+// The tags field is edited as raw text and parsed only on save. Parsing on every
+// keystroke slugified the half-typed tag, which strips a trailing "-", "," or
+// space as soon as it is typed -- so "most-view" could not be entered at all.
+function parseTags(text: string) {
+  return Array.from(new Set(text.split(',').map(slugify).filter(Boolean)));
 }
 
 export default function PostEditor({
@@ -62,7 +69,7 @@ export default function PostEditor({
           title: post.title,
           category: post.category,
           contentHtml: post.contentHtml,
-          tags: post.tags ?? [],
+          tagsText: (post.tags ?? []).join(', '),
           status: post.status ?? 'published',
         });
       })
@@ -79,11 +86,15 @@ export default function PostEditor({
         title: form.title,
         category: form.category,
         contentHtml: form.contentHtml,
-        tags: form.tags,
+        tags: parseTags(form.tagsText),
         status: publish ? 'published' : 'draft',
       });
       setOriginal(saved);
-      setForm((f) => ({ ...f, status: saved.status ?? 'published' }));
+      setForm((f) => ({
+        ...f,
+        tagsText: (saved.tags ?? []).join(', '),
+        status: saved.status ?? 'published',
+      }));
       setStatus({ kind: 'ok', text: publish ? 'Saved and published' : 'Saved as draft' });
       onSaved(saved);
     } catch (err) {
@@ -167,13 +178,8 @@ export default function PostEditor({
         <label htmlFor="tags">Tags</label>
         <input
           id="tags"
-          value={form.tags.join(', ')}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              tags: e.target.value.split(',').map((t) => slugify(t)).filter(Boolean),
-            }))
-          }
+          value={form.tagsText}
+          onChange={(e) => setForm((f) => ({ ...f, tagsText: e.target.value }))}
         />
         <div className="hint">Comma separated. URL: /{form.category}/{form.slug || '…'}</div>
       </div>
