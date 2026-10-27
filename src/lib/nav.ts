@@ -24,8 +24,9 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
     // category and its URLs still resolve, it just isn't linked from the nav.
     // brainteaser was retired (2026-08-24) — its one post was an empty stub, so
     // the category is gone from the content DB and both URLs 301 to /.
-    slugs: ['swedesignpattern', 'system-design', 'backend-dev', 'frontend-dev', 'soft-skills',
-      'softwaredevelopmentbestpractice', 'fundamental-problem',
+    // behavioral-questions added 2026-10-25, next to system-design: the two halves of a loop.
+    slugs: ['swedesignpattern', 'system-design', 'behavioral-questions', 'backend-dev',
+      'frontend-dev', 'soft-skills', 'softwaredevelopmentbestpractice', 'fundamental-problem',
       'how-it-works'],
   },
   {
@@ -37,7 +38,9 @@ export const NAV_GROUPS: { label: string; slugs: string[] }[] = [
     // would read well here, but moving it changes where an existing category appears in the nav,
     // and that is a separate decision from adding a new one. Folau's call, 2026-09-18.
     label: 'Mobile',
-    slugs: ['ios'],
+    // android added 2026-10-10, after ios: the same app on the other platform, and the order the
+    // two tracks were written in. navTree() hides it until the category is seeded.
+    slugs: ['ios', 'android'],
   },
   {
     label: 'JavaScript',
